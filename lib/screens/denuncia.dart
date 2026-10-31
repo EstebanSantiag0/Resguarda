@@ -83,7 +83,7 @@ class _DenunciaState extends State<Denuncia> {
     return Scaffold(
       appBar: AppBar(title: const Text('Preparar denuncia')),
       body: ListView(
-        padding: const EdgeInsets.all(20),
+        padding: EdgeInsets.symmetric(horizontal: margenLateral(context), vertical: 20),
         children: [
           Text(explicacion, style: texto.bodyLarge),
           const SizedBox(height: 18),

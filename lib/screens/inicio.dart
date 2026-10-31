@@ -19,13 +19,14 @@ class Inicio extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final texto = Theme.of(context).textTheme;
+    final m = margenLateral(context);
     return Scaffold(
       body: CustomScrollView(
         slivers: [
           SliverToBoxAdapter(
             child: Container(
               color: Paleta.anil,
-              padding: EdgeInsets.fromLTRB(22, MediaQuery.of(context).padding.top + 8, 12, 0),
+              padding: EdgeInsets.fromLTRB(m, MediaQuery.of(context).padding.top + 8, m - 8, 0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -45,11 +46,11 @@ class Inicio extends StatelessWidget {
             ),
           ),
           SliverPadding(
-            padding: const EdgeInsets.fromLTRB(20, 26, 20, 8),
+            padding: EdgeInsets.fromLTRB(m, 26, m, 8),
             sliver: SliverToBoxAdapter(child: Text('¿Qué está pasando?', style: texto.headlineSmall)),
           ),
           SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
+            padding: EdgeInsets.symmetric(horizontal: m),
             sliver: SliverList.separated(
               itemCount: situaciones.length,
               separatorBuilder: (_, _) => const SizedBox(height: 10),
@@ -70,7 +71,7 @@ class Inicio extends StatelessWidget {
             ),
           ),
           SliverPadding(
-            padding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
+            padding: EdgeInsets.fromLTRB(m, 14, m, 0),
             sliver: SliverToBoxAdapter(
               child: _Entrada(
                 orden: situaciones.length,
@@ -129,7 +130,7 @@ class _Emergencia extends StatelessWidget {
     final texto = Theme.of(context).textTheme;
     return Container(
       decoration: const BoxDecoration(color: Colors.white, border: Border(top: BorderSide(color: Paleta.hilo))),
-      padding: EdgeInsets.fromLTRB(20, 12, 20, MediaQuery.of(context).padding.bottom + 14),
+      padding: EdgeInsets.fromLTRB(margenLateral(context), 12, margenLateral(context), MediaQuery.of(context).padding.bottom + 14),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,

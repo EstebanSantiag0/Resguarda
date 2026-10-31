@@ -88,7 +88,7 @@ class _ChatState extends State<Chat> {
               Expanded(
                 child: ListView(
                   controller: _scroll,
-                  padding: const EdgeInsets.fromLTRB(14, 16, 14, 8),
+                  padding: EdgeInsets.fromLTRB(margenLateral(context) - 6, 16, margenLateral(context) - 6, 8),
                   children: [
                     if (mensajes.isEmpty) _Bienvenida(situacion: _sesion.situacion),
                     for (final m in mensajes) Burbuja(key: ObjectKey(m), mensaje: m),
@@ -143,7 +143,7 @@ class _Entrada extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: const BoxDecoration(color: Colors.white, border: Border(top: BorderSide(color: Paleta.hilo))),
-      padding: EdgeInsets.fromLTRB(14, 10, 8, MediaQuery.of(context).padding.bottom + 10),
+      padding: EdgeInsets.fromLTRB(margenLateral(context) - 6, 10, margenLateral(context) - 12, MediaQuery.of(context).padding.bottom + 10),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [

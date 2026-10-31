@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 /// Paleta tomada de los tintes naturales de Oaxaca: añil y grana cochinilla.
@@ -16,9 +18,13 @@ const fuenteTitulos = 'NotoSerifDisplay';
 Duration movimiento(BuildContext context, int ms) =>
     MediaQuery.of(context).disableAnimations ? Duration.zero : Duration(milliseconds: ms);
 
+/// Margen lateral: 20 px en el celular; en web o tableta centra el contenido a 680 px de ancho.
+double margenLateral(BuildContext context) => math.max(20, (MediaQuery.sizeOf(context).width - 680) / 2);
+
 ThemeData temaResguarda() {
   final base = ThemeData(
     useMaterial3: true,
+    fontFamily: 'NotoSans',
     colorScheme: ColorScheme.fromSeed(
       seedColor: Paleta.anil,
       primary: Paleta.anil,
@@ -33,9 +39,9 @@ ThemeData temaResguarda() {
         .copyWith(
           displaySmall: const TextStyle(fontFamily: fuenteTitulos, fontWeight: FontWeight.w700, fontSize: 34, height: 1.1),
           headlineSmall: const TextStyle(fontFamily: fuenteTitulos, fontWeight: FontWeight.w500, fontSize: 24, height: 1.2),
-          titleMedium: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16, height: 1.35),
-          bodyLarge: const TextStyle(fontSize: 16, height: 1.5),
-          bodyMedium: const TextStyle(fontSize: 14, height: 1.45),
+          titleMedium: const TextStyle(fontFamily: 'NotoSans', fontWeight: FontWeight.w600, fontSize: 16, height: 1.35),
+          bodyLarge: const TextStyle(fontFamily: 'NotoSans', fontSize: 16, height: 1.5),
+          bodyMedium: const TextStyle(fontFamily: 'NotoSans', fontSize: 14, height: 1.45),
         )
         .apply(bodyColor: Paleta.tinta, displayColor: Paleta.tinta),
     appBarTheme: const AppBarTheme(

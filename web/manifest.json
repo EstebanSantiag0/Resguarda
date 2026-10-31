@@ -1,11 +1,11 @@
 {
-    "name": "resguarda",
-    "short_name": "resguarda",
+    "name": "Resguarda",
+    "short_name": "Resguarda",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#23306B",
+    "theme_color": "#23306B",
+    "description": "Orientación privada si vives violencia digital.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

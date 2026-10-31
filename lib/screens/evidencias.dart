@@ -59,7 +59,7 @@ class _EvidenciasState extends State<Evidencias> {
       body: ListenableBuilder(
         listenable: _sesion,
         builder: (context, _) => ListView(
-          padding: const EdgeInsets.all(20),
+          padding: EdgeInsets.symmetric(horizontal: margenLateral(context), vertical: 20),
           children: [
             Text(
               'Sube capturas de la publicación, del perfil y de los mensajes. No subas las imágenes íntimas.',

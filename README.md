@@ -59,6 +59,17 @@ Nada se guarda en el teléfono: todo vive en memoria mientras la app está abier
 
 Si el modelo no responde, el chat muestra pasos básicos de seguridad que no dependen de internet.
 
+## Para que abra rápido
+- **No presenten con `flutter run` normal**: es modo *debug*, tarda en abrir y va lento.
+  Usen `flutter run --release` (o instalen `build/app/outputs/flutter-apk/app-release.apk`).
+- **Web**: `flutter run -d chrome --release --no-web-resources-cdn` (o
+  `flutter build web --release --no-web-resources-cdn`). Sin esa opción, el navegador descarga
+  el motor gráfico de internet al abrir, y con el Wi-Fi del evento tarda muchísimo.
+- Al tocar el ícono se ve de inmediato el ícono de Resguarda sobre añil (Android 12+, Android 11 o
+  menos, iOS y web), y el primer cuadro de la app tiene el mismo color, sin destello blanco.
+- Ícono: `assets/icon/icon.png` (original) → `assets/icon/icon_limpio.png` (bordes limpios).
+  Para regenerar íconos: `dart run flutter_launcher_icons`.
+
 ## ⚠️ Antes de presentarla
 - **No subas la llave de la API a GitHub** ni la pegues en el código: pásala solo con `--dart-define`.
   Quien tenga el APK puede extraerla; para producción hace falta un servidor intermedio.
