@@ -74,6 +74,9 @@ Interfaz local ──▶ FastAPI ──▶ Ollama + Gemma (localhost)
 - **DNS rebinding:** solo se aceptan peticiones a `ALLOWED_HOSTS` (por defecto `localhost,127.0.0.1`).
   Para usarlo desde el celular: `ALLOWED_HOSTS=localhost,127.0.0.1,IP_DE_LA_LAPTOP` y `--host 0.0.0.0`,
   solo en una red propia: no tiene contraseña.
+- **Evidencias solo en la laptop:** `/api/evidence`, `/api/export` y `/api/report` responden solo a
+  `127.0.0.1`/`::1`. Aunque el backend escuche en la red, nadie más en el Wi-Fi puede subir ni descargar
+  evidencias. La app Flutter no los usa: arma el expediente en el teléfono.
 
 ## Fuentes y límites
 

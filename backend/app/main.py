@@ -41,6 +41,20 @@ async def require_app_header(request: Request, call_next):
     return await call_next(request)
 
 
+# Evidencias y expedientes solo desde la laptop misma: aunque el backend escuche en la red
+# (--host 0.0.0.0 para el celular), nadie más en el Wi-Fi puede subir, ni descargar archivos.
+# La app Flutter no los necesita: arma el expediente en el teléfono.
+LOOPBACK_ONLY = {"/api/evidence", "/api/export", "/api/report"}
+
+
+@app.middleware("http")
+async def loopback_only(request: Request, call_next):
+    client = request.client.host if request.client else ""
+    if request.url.path in LOOPBACK_ONLY and client not in {"127.0.0.1", "::1"}:
+        return JSONResponse({"detail": "Disponible solo en este equipo."}, status_code=403)
+    return await call_next(request)
+
+
 # La app Flutter web corre en otro puerto (flutter run -d chrome); solo se aceptan orígenes locales.
 # Otros orígenes se pueden agregar con CORS_ORIGIN_REGEX (por ejemplo, la IP de la laptop).
 app.add_middleware(
