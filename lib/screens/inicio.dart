@@ -1,178 +1,113 @@
 import 'package:flutter/material.dart';
 
+import '../plan.dart' show fuentes;
 import '../salida.dart';
 import '../sesion.dart';
 import '../theme.dart';
-import '../widgets/greca.dart';
-import '../widgets/pressable.dart';
-import 'chat.dart';
+import '../widgets/comunes.dart';
 import 'evidencias.dart';
+import 'relato.dart';
 
-class Inicio extends StatelessWidget {
+/// Paso 0: antes de pedir cualquier dato, se pregunta si hay peligro.
+class Inicio extends StatefulWidget {
   const Inicio({super.key});
 
-  void _abrirChat(BuildContext context, Situacion s) {
-    Sesion.instancia.iniciar(s);
-    Navigator.of(context).push(MaterialPageRoute(builder: (_) => const Chat()));
-  }
-
   @override
-  Widget build(BuildContext context) {
-    final texto = Theme.of(context).textTheme;
-    final m = margenLateral(context);
-    return Scaffold(
-      body: CustomScrollView(
-        slivers: [
-          SliverToBoxAdapter(
-            child: Container(
-              color: Paleta.anil,
-              padding: EdgeInsets.fromLTRB(m, MediaQuery.of(context).padding.top + 8, m - 8, 0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Align(alignment: Alignment.centerRight, child: BotonSalir()),
-                  const SizedBox(height: 12),
-                  Text('Resguarda', style: texto.displaySmall?.copyWith(color: Colors.white)),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Orientación privada si vives violencia digital. No necesitas cuenta y no se guarda nada al salir.',
-                    style: texto.bodyLarge?.copyWith(color: Colors.white.withValues(alpha: 0.85)),
-                  ),
-                  const SizedBox(height: 22),
-                  const GrecaBordada(color: Color(0xFFE7B7C6)),
-                  const SizedBox(height: 14),
-                ],
-              ),
-            ),
-          ),
-          SliverPadding(
-            padding: EdgeInsets.fromLTRB(m, 26, m, 8),
-            sliver: SliverToBoxAdapter(child: Text('¿Qué está pasando?', style: texto.headlineSmall)),
-          ),
-          SliverPadding(
-            padding: EdgeInsets.symmetric(horizontal: m),
-            sliver: SliverList.separated(
-              itemCount: situaciones.length,
-              separatorBuilder: (_, _) => const SizedBox(height: 10),
-              itemBuilder: (context, i) => _Entrada(
-                orden: i,
-                child: Pressable(
-                  onTap: () => _abrirChat(context, situaciones[i]),
-                  colorHover: const Color(0xFFF7F8FC),
-                  semantica: situaciones[i].titulo,
-                  child: Row(
-                    children: [
-                      Expanded(child: Text(situaciones[i].titulo, style: texto.titleMedium)),
-                      const Icon(Icons.chevron_right, color: Paleta.anil),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-          SliverPadding(
-            padding: EdgeInsets.fromLTRB(m, 14, m, 0),
-            sliver: SliverToBoxAdapter(
-              child: _Entrada(
-                orden: situaciones.length,
-                child: Pressable(
-                  onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const Evidencias())),
-                  color: Colors.transparent,
-                  colorHover: Colors.white,
-                  semantica: 'Mis evidencias',
-                  child: Row(
-                    children: [
-                      const Icon(Icons.fingerprint, color: Paleta.cantera),
-                      const SizedBox(width: 12),
-                      Expanded(child: Text('Registrar mis capturas como evidencia', style: texto.titleMedium)),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-          const SliverToBoxAdapter(child: SizedBox(height: 24)),
-        ],
-      ),
-      // Siempre visible, sin necesidad de desplazarse.
-      bottomNavigationBar: const _Emergencia(),
-    );
-  }
+  State<Inicio> createState() => _InicioState();
 }
 
-/// Entrada escalonada de las opciones, justo después de que termina la greca.
-class _Entrada extends StatelessWidget {
-  const _Entrada({required this.orden, required this.child});
-  final int orden;
-  final Widget child;
+class _InicioState extends State<Inicio> {
+  bool _emergencia = false;
 
-  @override
-  Widget build(BuildContext context) {
-    final duracion = movimiento(context, 900 + orden * 90);
-    return TweenAnimationBuilder<double>(
-      tween: Tween(begin: 0, end: 1),
-      duration: duracion,
-      curve: Interval(duracion == Duration.zero ? 0 : 0.6, 1, curve: Curves.easeOutCubic),
-      builder: (_, t, hijo) => Opacity(
-        opacity: t,
-        child: Transform.translate(offset: Offset(0, 12 * (1 - t)), child: hijo),
-      ),
-      child: child,
-    );
+  void _continuar({required bool riesgo}) {
+    Sesion.instancia.marcarRiesgo(riesgo);
+    Navigator.of(context).push(MaterialPageRoute(builder: (_) => const Relato()));
   }
-}
-
-class _Emergencia extends StatelessWidget {
-  const _Emergencia();
 
   @override
   Widget build(BuildContext context) {
-    final texto = Theme.of(context).textTheme;
-    return Container(
-      decoration: const BoxDecoration(color: Colors.white, border: Border(top: BorderSide(color: Paleta.hilo))),
-      padding: EdgeInsets.fromLTRB(margenLateral(context), 12, margenLateral(context), MediaQuery.of(context).padding.bottom + 14),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('¿Estás en peligro ahora?', style: texto.titleMedium),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Expanded(
-                child: Pressable(
-                  onTap: () => llamar('911'),
-                  color: Paleta.grana,
-                  colorHover: const Color(0xFF8A1238),
-                  borde: Paleta.grana,
-                  semantica: 'Llamar al 911',
-                  child: const Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.call, color: Colors.white, size: 20),
-                      SizedBox(width: 8),
-                      Text('Llamar al 911', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Pressable(
-                  onTap: () => llamar('089'),
-                  colorHover: const Color(0xFFF7F8FC),
-                  semantica: 'Denuncia anónima al 089',
-                  child: const Text(
-                    'Denuncia anónima 089',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontWeight: FontWeight.w600, color: Paleta.anil),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
+    return Pagina(children: [
+      const Aparecer(
+        child: Portada(
+          titulo: 'Vamos paso a paso.',
+          texto: 'Resguarda te ayuda a organizar información y evidencia en este dispositivo. '
+              'No necesitas saber de tecnología ni crear una cuenta.',
+        ),
       ),
-    );
+      Aparecer(
+        orden: 1,
+        child: Tarjeta(
+          ceja: 'Antes de empezar',
+          titulo: '¿Estás en peligro ahora?',
+          pista: 'Tu seguridad es más importante que cualquier archivo o formulario.',
+          children: [
+            FilaBotones(
+              izquierda: Boton('Sí o no estoy segura', estilo: Estilo.peligro, onTap: () {
+                Sesion.instancia.marcarRiesgo(true);
+                setState(() => _emergencia = true);
+              }),
+              derecha: Boton('No, puedo continuar', onTap: () => _continuar(riesgo: false)),
+            ),
+            AnimatedSize(
+              duration: movimiento(context, 260),
+              curve: Curves.easeOutCubic,
+              child: !_emergencia
+                  ? const SizedBox(width: double.infinity)
+                  : Padding(
+                      padding: const EdgeInsets.only(top: 16),
+                      child: Aviso(
+                        peligro: true,
+                        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                          const Text.rich(TextSpan(children: [
+                            TextSpan(text: 'Busca ayuda ahora.\n', style: TextStyle(fontWeight: FontWeight.w700)),
+                            TextSpan(text: 'Si hay peligro físico inmediato, llama al '),
+                            TextSpan(text: '911', style: TextStyle(fontWeight: FontWeight.w700)),
+                            TextSpan(
+                                text: ' o contacta a una persona de confianza. '
+                                    'No necesitas terminar este proceso.'),
+                          ])),
+                          const SizedBox(height: 14),
+                          FilaBotones(
+                            izquierda:
+                                Boton('Llamar al 911', icono: Icons.call, estilo: Estilo.peligro, onTap: () => llamar('911')),
+                            derecha: Boton('Denuncia anónima 089', estilo: Estilo.secundario, onTap: () => llamar('089')),
+                          ),
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: TextButton(
+                              onPressed: () => abrir(fuentes['emergency']!.url),
+                              child: const Text('Ver información oficial del 911'),
+                            ),
+                          ),
+                          Boton('Continuar solo si es seguro',
+                              estilo: Estilo.contorno, onTap: () => _continuar(riesgo: true)),
+                        ]),
+                      ),
+                    ),
+            ),
+          ],
+        ),
+      ),
+      Aparecer(
+        orden: 2,
+        child: Tarjeta(
+          ceja: '¿Ya tienes capturas?',
+          titulo: 'Registra tu evidencia',
+          pista: 'Cada archivo recibe un comprobante SHA-256 que ayuda a mostrar que no cambió después de registrarlo.',
+          children: [
+            Boton('Registrar evidencias',
+                icono: Icons.fingerprint,
+                estilo: Estilo.secundario,
+                onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const Evidencias()))),
+          ],
+        ),
+      ),
+      const SizedBox(height: 20),
+      const Text(
+        'Salida rápida: toca «Salir» arriba en cualquier momento. Borra lo de esta sesión, '
+        'pero no el historial del navegador ni copias que hayas descargado o compartido.',
+        style: letraFina,
+      ),
+    ]);
   }
 }

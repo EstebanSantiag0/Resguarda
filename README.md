@@ -1,101 +1,110 @@
-# 🛡️ Resguarda (app móvil)
+<p align="center"><img src="assets/icon/logo.png" width="120" alt="Logo de Resguarda"></p>
 
-App Flutter (Android/iOS) de **orientación legal ante violencia digital** en Oaxaca: difusión de
-imágenes íntimas sin consentimiento (Ley Olimpia), acoso, sextorsión y suplantación de identidad.
-Proyecto del **Hacktoberfest Hack Day Oaxaca 2026**.
+# Resguarda
 
-## Qué hace
-1. **¿Qué está pasando?** La persona elige su situación.
-2. **Cuéntame**: chat con Gemma que valida, explica, dice qué evidencia guardar y dónde denunciar.
-   Sus reglas están en `assets/conocimiento/skills.md` y solo usa los datos de
-   `assets/conocimiento/*.md`.
-3. **Evidencias**: registra capturas con su **huella SHA-256** (se calcula en el teléfono).
-4. **Preparar denuncia**: borrador generado con la conversación + lista de evidencias, para
-   compartir o copiar.
-5. **Salir**: borra todo lo de la sesión y cierra la app. **911** y **089** siempre visibles.
+**Primeros pasos ante violencia digital en Oaxaca, sin crear cuenta y sin guardar nada al salir.**
 
-Nada se guarda en el teléfono: todo vive en memoria mientras la app está abierta.
+Resguarda transforma un incidente breve en un plan de resguardo verificable: pregunta primero si hay
+peligro, clasifica la situación, muestra una checklist basada en fuentes oficiales, registra evidencias
+con su comprobante SHA-256 y exporta un expediente portable. Gemma (local o en la nube) organiza el
+relato y responde dudas en un chat; las acciones sensibles salen de reglas verificables, no del modelo.
 
-## Cómo correrla paso a paso
-1. Conecta el celular Android por USB con la **depuración USB** activada
-   (Ajustes → Acerca del teléfono → toca 7 veces "Número de compilación" → Opciones de desarrollador).
-2. Verifica que Flutter lo ve:
-   ```bash
-   flutter devices
+Proyecto del **Hacktoberfest Hack Day Oaxaca 2026**. App Flutter (Android, iOS y web) + backend
+FastAPI con Gemma en Ollama.
+
+> Resguarda no presenta denuncias, no determina delitos y no sustituye servicios de emergencia,
+> acompañamiento especializado ni asesoría legal.
+
+## Recorrido
+1. **¿Estás en peligro ahora?** Si la respuesta es sí o "no estoy segura": llamar al **911**,
+   denuncia anónima **089** y la opción de continuar solo si es seguro.
+2. **Cuéntame solo lo esencial.** Elige la situación (amenazas, contenido íntimo, sextorsión, cuenta
+   comprometida o suplantación), escribe lo que pasó sin datos identificables y marca si ya tienes
+   evidencia o si tu cuenta puede estar comprometida.
+3. **Tu plan personal.** Prioridad, acción inmediata, checklist marcable, **resumen para pedir ayuda**
+   (editable), rutas de apoyo (911, Secretaría de las Mujeres de Oaxaca 951 454 0508, Centros de
+   Justicia para las Mujeres) y fuentes oficiales.
+4. **Evidencias.** Tipo (captura, mensaje, correo…), nota opcional y comprobante **SHA-256**
+   calculado en el dispositivo. Toca una evidencia para copiar su comprobante.
+5. **Expediente.** `expediente-resguarda.zip` armado en el teléfono:
+   ```text
+   expediente-resguarda.zip
+   ├── expediente-resguarda.pdf   relato, resumen, plan, rutas y evidencias
+   ├── manifest.json              metadatos, hashes, plan y fecha de exportación
+   ├── fuentes.md                 fuentes oficiales y fecha de revisión
+   └── evidencias/
    ```
-3. Instala dependencias (ya están en caché, no necesita internet):
-   ```bash
-   flutter pub get --offline
-   ```
-4. Ejecuta con **una** de estas opciones de modelo:
+   También: solo el PDF, y un **borrador de denuncia** (Gemma, o una plantilla con `[COMPLETAR]` si
+   no hay modelo) para compartir o copiar.
+6. **Pregunta a Resguarda.** Chat con Gemma que solo usa las fuentes de `assets/conocimiento/`.
+7. **Salir / Borrar todo.** Borra relato, plan, conversación y evidencias (y los archivos del backend).
 
-   **0. Backend de Resguarda (recomendado: Gemma 4 local + PDF)**, en la carpeta `backend/`:
-   ```bash
-   ollama pull gemma4 && ollama serve                      # en la laptop que tenga el modelo
-   cd backend && python -m venv .venv && .venv/bin/pip install fastapi uvicorn python-multipart
-   .venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 8000
-   # En otra terminal, desde la raíz del proyecto:
-   flutter run -d chrome  --dart-define=RESGUARDA_API=http://localhost:8000          # web
-   flutter run -d <celular> --dart-define=RESGUARDA_API=http://IP_DE_LA_LAPTOP:8000  # Android
-   ```
-   Con el backend, "Preparar denuncia" descarga el **expediente PDF** y las capturas se guardan
-   también en el backend para que aparezcan en él. "Salir" borra todo también en el backend.
-   Para el celular, arranca el backend con la IP de la laptop permitida:
-   `ALLOWED_HOSTS=localhost,127.0.0.1,IP_DE_LA_LAPTOP .venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 8000`.
-   El backend rechaza peticiones sin el encabezado `X-Resguarda` (lo manda la app), pero no tiene
-   contraseña: con `--host 0.0.0.0` úsenlo solo en el hotspot propio.
+## Cómo correrla
 
-   **A. Gemma en Google AI Studio** (necesita internet en el celular):
-   ```bash
-   flutter run --dart-define=GEMMA_API_KEY=TU_LLAVE --dart-define=GEMMA_MODEL=gemma-3-27b-it
-   ```
-   Cambia `GEMMA_MODEL` por el nombre exacto del modelo Gemma que tengan en AI Studio.
+```bash
+flutter pub get --offline
+flutter run --release                     # sin modelo: plan con reglas locales y expediente funcionan igual
+```
 
-   **B. Modelo local en la laptop con Ollama** (sin internet, celular y laptop en la misma red):
-   ```bash
-   OLLAMA_HOST=0.0.0.0 ollama serve          # en la laptop
-   flutter run --dart-define=OLLAMA_URL=http://IP_DE_LA_LAPTOP:11434 --dart-define=OLLAMA_MODEL=gemma3:1b
-   ```
+Elige **una** fuente de modelo con `--dart-define`:
 
-Si el modelo no responde, el chat muestra pasos básicos de seguridad que no dependen de internet.
+| Opción | Comando | Privacidad |
+|---|---|---|
+| **Backend de Resguarda** (recomendado) | `--dart-define=RESGUARDA_API=http://IP_DE_LA_LAPTOP:8000` | Local |
+| **Ollama en la laptop** | `--dart-define=OLLAMA_URL=http://IP:11434 --dart-define=OLLAMA_MODEL=gemma3:1b` | Local |
+| **Google AI Studio** | `--dart-define=GEMMA_API_KEY=TU_LLAVE --dart-define=GEMMA_MODEL=gemma-3-27b-it` | El relato sale a Google |
 
-## Para que abra rápido
-- **No presenten con `flutter run` normal**: es modo *debug*, tarda en abrir y va lento.
-  Usen `flutter run --release` (o instalen `build/app/outputs/flutter-apk/app-release.apk`).
-- **Web**: `flutter run -d chrome --release --no-web-resources-cdn` (o
-  `flutter build web --release --no-web-resources-cdn`). Sin esa opción, el navegador descarga
-  el motor gráfico de internet al abrir, y con el Wi-Fi del evento tarda muchísimo.
-- Al tocar el ícono se ve de inmediato el ícono de Resguarda sobre añil (Android 12+, Android 11 o
-  menos, iOS y web), y el primer cuadro de la app tiene el mismo color, sin destello blanco.
-- Ícono: `assets/icon/icon.png` (original) → `assets/icon/icon_limpio.png` (bordes limpios).
+El encabezado muestra cuál se usa ("Procesamiento local", "Gemma en la nube" o "Sin conexión").
+
+### Backend (FastAPI + Gemma en Ollama)
+```bash
+ollama pull gemma3:1b && ollama serve
+cd backend && uv sync          # o: python -m venv .venv && .venv/bin/pip install fastapi uvicorn python-multipart
+MODEL_NAME=gemma3:1b uv run uvicorn app.main:app --host 127.0.0.1 --port 8000
+```
+Abre `http://localhost:8000` para la versión web del prototipo. Para el celular, permite la IP de la
+laptop: `ALLOWED_HOSTS=localhost,127.0.0.1,IP_DE_LA_LAPTOP ... --host 0.0.0.0` y úsalo solo en el
+hotspot propio (no tiene contraseña). Detalles en [`backend/README.md`](backend/README.md).
+
+### Para que abra rápido
+- Presenten con `--release` (o instalen `build/app/outputs/flutter-apk/app-release.apk`).
+- Web: `flutter build web --release --no-web-resources-cdn`; sin esa opción el navegador descarga
+  el motor gráfico de internet al abrir.
+- El ícono se ve de inmediato sobre el mismo fondo claro de la app (Android, iOS y web), sin destellos.
   Para regenerar íconos: `dart run flutter_launcher_icons`.
 
-## ⚠️ Antes de presentarla
-- **No subas la llave de la API a GitHub** ni la pegues en el código: pásala solo con `--dart-define`.
-  Quien tenga el APK puede extraerla; para producción hace falta un servidor intermedio.
-- Con la opción A, el relato **sí sale del teléfono** hacia Google. Díganlo con honestidad en el pitch;
-  la opción B (o un modelo dentro del teléfono) es la versión privada.
+## Antes de presentarla
+- **No subas la llave de la API** ni la pegues en el código: solo con `--dart-define`.
+- Usa únicamente historias y archivos **ficticios** en la demostración.
 - `assets/conocimiento/contactos.md` aún tiene datos **PENDIENTE VERIFICAR** (Fiscalía, policía
-  cibernética). Llénenlos solo con fuentes oficiales.
+  cibernética). Llénenlos solo con fuentes oficiales. Las rutas y fuentes de `rutas_de_apoyo.md` y
+  `fuentes.md` se revisaron el 31 de octubre de 2026.
+- El SHA-256 detecta cambios respecto al archivo registrado; por sí solo no es cadena de custodia.
 
 ## Estructura
 | Archivo | Qué hace |
 |---|---|
-| `lib/screens/inicio.dart` | Pantalla de inicio: situaciones, evidencias, barra de emergencia. |
-| `lib/screens/chat.dart` | Chat con el modelo. |
-| `lib/screens/evidencias.dart` | Capturas con huella SHA-256. |
-| `lib/screens/denuncia.dart` | Borrador de denuncia para compartir o copiar. |
-| `lib/services/gemma.dart` | Conexión con Google AI Studio u Ollama. |
-| `lib/widgets/pressable.dart` | Botones con estados hover, presionado y foco. |
-| `lib/widgets/greca.dart` | Greca bordada animada del encabezado. |
-| `lib/theme.dart` | Paleta (añil, grana cochinilla, cantera) y tipografía. |
+| `lib/screens/inicio.dart` | ¿Estás en peligro? 911, 089 y acceso a evidencias. |
+| `lib/screens/relato.dart` | Triage: situación, relato y casillas. |
+| `lib/screens/plan_personal.dart` | Plan, rutas de apoyo, evidencia, chat y fuentes. |
+| `lib/screens/evidencias.dart` | Evidencias con tipo, nota y SHA-256. |
+| `lib/screens/expediente.dart` | `.zip`, PDF y borrador de denuncia. |
+| `lib/screens/chat.dart` | Chat con Gemma. |
+| `lib/plan.dart` | Situaciones, fuentes, rutas y reglas del plan. |
+| `lib/services/expediente.dart` | Generador de PDF y `.zip`. |
+| `lib/services/gemma.dart` · `api.dart` | Backend, Ollama o Google AI Studio. |
+| `lib/widgets/comunes.dart` · `pressable.dart` | Encabezado con logo, tarjetas y botones con estados. |
+| `backend/` | FastAPI + Ollama, versión web del prototipo. |
 
 ## Diseño
-Colores de los tintes naturales de Oaxaca: **añil** (identidad), **grana cochinilla** (emergencia),
-**cantera verde** (evidencia verificada). Títulos en Noto Serif Display. El encabezado tiene una
-greca escalonada que se "borda" con puntada corrida al abrir la app; las opciones entran justo
-después. Las animaciones se desactivan si el teléfono tiene activado "reducir movimiento".
+Lienzo claro, tarjetas blancas y **ciruela** como acento (combina con el morado del logo); verde para
+lo privado y verificado, rojo para emergencia. Todos los botones tienen estados hover, presionado y
+foco, y las animaciones se desactivan si el sistema pide reducir movimiento.
+
+## Licencia
+Backend: [Apache-2.0](backend/LICENSE).
 
 ## Autoría
-La idea, el diseño del proyecto y su desarrollo son de **Esteban Santiago** y su equipo del Hack Day.
-Claude (IA de Anthropic) ayudó a generar el código base de la app y a redactar esta documentación.
+La idea, el diseño del proyecto y su desarrollo son de **Esteban Santiago** y su equipo del Hack Day
+Oaxaca (incluido el prototipo web de `backend/`). Claude (IA de Anthropic) ayudó a generar el código
+base de la app y a redactar esta documentación.

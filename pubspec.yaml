@@ -39,6 +39,7 @@ dependencies:
   url_launcher: ^6.3.3
   file_picker: ^13.3.0
   share_plus: ^13.3.1
+  archive: ^4.3.0
 
 dev_dependencies:
   flutter_test:
@@ -65,6 +66,7 @@ flutter:
 
   assets:
     - assets/conocimiento/
+    - assets/icon/logo.png
 
   fonts:
     # Texto normal empaquetado: en web así no se descarga Roboto de internet al abrir.
@@ -74,12 +76,6 @@ flutter:
         - asset: assets/fonts/NotoSans-Medium.ttf
           weight: 500
         - asset: assets/fonts/NotoSans-Bold.ttf
-          weight: 700
-    - family: NotoSerifDisplay
-      fonts:
-        - asset: assets/fonts/NotoSerifDisplay-Medium.ttf
-          weight: 500
-        - asset: assets/fonts/NotoSerifDisplay-Bold.ttf
           weight: 700
 
   # To add assets to your application, add an assets section, like this:
@@ -124,5 +120,5 @@ flutter_launcher_icons:
   web:
     generate: true
     image_path: "assets/icon/icon_limpio.png"
-    background_color: "#23306B"
-    theme_color: "#23306B"
+    background_color: "#F7F7F8"
+    theme_color: "#642548"

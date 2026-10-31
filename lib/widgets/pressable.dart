@@ -10,8 +10,8 @@ class Pressable extends StatefulWidget {
     required this.onTap,
     this.color = Colors.white,
     this.colorHover,
-    this.borde = Paleta.hilo,
-    this.radio = 14,
+    this.borde = Paleta.linea,
+    this.radio = 12,
     this.padding = const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
     this.semantica,
   });
@@ -71,12 +71,12 @@ class _PressableState extends State<Pressable> {
                 color: resaltado ? (widget.colorHover ?? widget.color) : widget.color,
                 borderRadius: BorderRadius.circular(widget.radio),
                 border: Border.all(
-                  color: _foco ? Paleta.anil : (resaltado ? Paleta.anil.withValues(alpha: 0.45) : widget.borde),
+                  color: _foco ? Paleta.ciruela : (resaltado ? Paleta.ciruela.withValues(alpha: 0.45) : widget.borde),
                   width: _foco ? 2.5 : 1.2,
                 ),
                 boxShadow: [
                   if (resaltado && !_presionado)
-                    BoxShadow(color: Paleta.anil.withValues(alpha: 0.14), blurRadius: 14, offset: const Offset(0, 6)),
+                    BoxShadow(color: Paleta.ciruela.withValues(alpha: 0.14), blurRadius: 14, offset: const Offset(0, 6)),
                 ],
               ),
               child: widget.child,

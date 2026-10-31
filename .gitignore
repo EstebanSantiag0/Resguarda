@@ -46,3 +46,7 @@ app.*.map.json
 
 # Widget Preview related
 .widget_preview/
+
+# Resguarda: archivo del equipo (trae .git, .venv y una imagen de WhatsApp) y metadatos de KDE
+HackDay.zip
+.directory

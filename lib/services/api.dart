@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:typed_data';
 
 import 'package:http/http.dart' as http;
 
@@ -21,34 +20,35 @@ class ResguardaApi {
     return datos;
   }
 
+  static Future<Map<String, dynamic>> _post(String ruta, Map<String, Object> cuerpo, Duration limite) async =>
+      _json(await http.post(_ruta(ruta), headers: _encabezados, body: jsonEncode(cuerpo)).timeout(limite));
+
   static Future<String> chat(String mensaje) async {
-    final r = await http
-        .post(_ruta('/api/chat'),
-            headers: _encabezados, body: jsonEncode({'message': mensaje}))
-        .timeout(const Duration(seconds: 120));
-    final datos = _json(r);
+    final datos = await _post('/api/chat', {'message': mensaje}, const Duration(seconds: 120));
     final fuentes = (datos['sources'] as List? ?? []).cast<String>();
     final respuesta = (datos['answer'] as String).trim();
     return fuentes.isEmpty ? respuesta : '$respuesta\n\nFuentes: ${fuentes.join(', ')}';
   }
 
-  /// Guarda la captura en el backend para que aparezca en el expediente PDF.
-  static Future<String> subirEvidencia(String nombre, Uint8List bytes) async {
-    final solicitud = http.MultipartRequest('POST', _ruta('/api/evidence'))
-      ..headers['X-Resguarda'] = '1'
-      ..files.add(http.MultipartFile.fromBytes('file', bytes, filename: nombre));
-    final r = await http.Response.fromStream(await solicitud.send().timeout(const Duration(seconds: 60)));
-    return _json(r)['sha256'] as String;
-  }
-
-  static Future<Uint8List> expediente(String resumen) async {
-    final r = await http
-        .post(_ruta('/api/report'),
-            headers: _encabezados, body: jsonEncode({'summary': resumen}))
-        .timeout(const Duration(seconds: 60));
-    if (r.statusCode != 200) throw Exception('El backend respondió ${r.statusCode}');
-    return r.bodyBytes;
-  }
+  /// Triage y plan validado por el backend (mismas reglas que `lib/plan.dart`).
+  static Future<Map<String, dynamic>> plan({
+    required String incidente,
+    required bool riesgoInmediato,
+    required bool tieneEvidencia,
+    required bool cuentaComprometida,
+    required String relato,
+  }) =>
+      _post(
+        '/api/plan',
+        {
+          'incident': incidente,
+          'immediate_risk': riesgoInmediato,
+          'evidence_available': tieneEvidencia,
+          'account_compromised': cuentaComprometida,
+          'notes': relato,
+        },
+        const Duration(seconds: 90),
+      );
 
   static Future<void> borrarTodo() async {
     await http.post(_ruta('/api/delete-all'), headers: const {'X-Resguarda': '1'}).timeout(const Duration(seconds: 5));

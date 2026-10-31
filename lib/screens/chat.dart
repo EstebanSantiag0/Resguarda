@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 
 import '../salida.dart';
 import '../services/gemma.dart';
+import '../plan.dart';
 import '../sesion.dart';
 import '../theme.dart';
 import '../widgets/burbuja.dart';
-import 'denuncia.dart';
+import '../widgets/comunes.dart' show Logo;
+import 'expediente.dart';
 import 'evidencias.dart';
 
 class Chat extends StatefulWidget {
@@ -50,7 +52,7 @@ class _ChatState extends State<Chat> {
     _sesion.agregarMensaje(Mensaje(true, texto));
     _sesion.ponerPensando(true);
     try {
-      final respuesta = await Gemma.responder(_sesion.mensajes, _sesion.situacion);
+      final respuesta = await Gemma.responder(_sesion.mensajes, _sesion.incidente);
       _sesion.agregarMensaje(Mensaje(false, respuesta));
     } catch (e) {
       debugPrint('Error del modelo: $e');
@@ -64,7 +66,8 @@ class _ChatState extends State<Chat> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Cuéntame'),
+        titleSpacing: 0,
+        title: const Row(children: [Logo(tamano: 30), SizedBox(width: 10), Flexible(child: Text('Pregunta a Resguarda'))]),
         actions: [
           IconButton(
             tooltip: 'Evidencias',
@@ -72,9 +75,9 @@ class _ChatState extends State<Chat> {
             onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const Evidencias())),
           ),
           IconButton(
-            tooltip: 'Preparar denuncia',
-            icon: const Icon(Icons.description_outlined),
-            onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const Denuncia())),
+            tooltip: 'Expediente',
+            icon: const Icon(Icons.folder_zip_outlined),
+            onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const Expediente())),
           ),
           const BotonSalir(),
         ],
@@ -90,7 +93,7 @@ class _ChatState extends State<Chat> {
                   controller: _scroll,
                   padding: EdgeInsets.fromLTRB(margenLateral(context) - 6, 16, margenLateral(context) - 6, 8),
                   children: [
-                    if (mensajes.isEmpty) _Bienvenida(situacion: _sesion.situacion),
+                    if (mensajes.isEmpty) _Bienvenida(incidente: _sesion.incidente),
                     for (final m in mensajes) Burbuja(key: ObjectKey(m), mensaje: m),
                     if (_sesion.pensando) const Escribiendo(),
                   ],
@@ -106,8 +109,8 @@ class _ChatState extends State<Chat> {
 }
 
 class _Bienvenida extends StatelessWidget {
-  const _Bienvenida({this.situacion});
-  final Situacion? situacion;
+  const _Bienvenida({this.incidente});
+  final Incidente? incidente;
 
   @override
   Widget build(BuildContext context) {
@@ -119,13 +122,13 @@ class _Bienvenida extends StatelessWidget {
           Text('Lo que te pasa no es tu culpa.', style: Theme.of(context).textTheme.headlineSmall),
           const SizedBox(height: 8),
           Text(
-            'Cuéntame con tus palabras qué pasó, desde cuándo y en qué red social. '
-            'Te diré qué guardar como prueba y dónde puedes denunciar.',
+            'Pregúntame qué guardar como prueba, cómo reportar en cada red social o dónde pedir ayuda. '
+            'Evita nombres, contraseñas, direcciones o teléfonos.',
             style: Theme.of(context).textTheme.bodyLarge,
           ),
-          if (situacion != null) ...[
+          if (incidente != null) ...[
             const SizedBox(height: 12),
-            Text('Elegiste: ${situacion!.titulo}', style: const TextStyle(color: Paleta.anil, fontWeight: FontWeight.w600)),
+            Text('Elegiste: ${incidente!.opcion}', style: const TextStyle(color: Paleta.ciruela, fontWeight: FontWeight.w600)),
           ],
         ],
       ),
@@ -142,7 +145,7 @@ class _Entrada extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(color: Colors.white, border: Border(top: BorderSide(color: Paleta.hilo))),
+      decoration: const BoxDecoration(color: Colors.white, border: Border(top: BorderSide(color: Paleta.linea))),
       padding: EdgeInsets.fromLTRB(margenLateral(context) - 6, 10, margenLateral(context) - 12, MediaQuery.of(context).padding.bottom + 10),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
@@ -177,8 +180,8 @@ class _Entrada extends StatelessWidget {
                     style: ButtonStyle(
                       backgroundColor: WidgetStateProperty.resolveWith((s) =>
                           s.contains(WidgetState.pressed) || s.contains(WidgetState.hovered)
-                              ? const Color(0xFF1A2454)
-                              : Paleta.anil),
+                              ? Paleta.ciruelaOscura
+                              : Paleta.ciruela),
                     ),
                   ),
           ),

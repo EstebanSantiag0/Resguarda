@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Pantalla de arranque en Android 11 y anteriores: fondo añil con el ícono al centro. -->
+<!-- Pantalla de arranque en Android 11 y anteriores: fondo claro con el ícono al centro. -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:drawable="@color/splash_bg" />
     <item>

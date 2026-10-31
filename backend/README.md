@@ -1,56 +1,93 @@
-# 🛡️ Resguarda
+<p align="center"><img src="app/logo.png" width="96" alt="Logo de Resguarda"></p>
 
-Asistente local y sin conexión para orientación inicial frente a violencia digital. Recupera información de documentos locales, usa un modelo Gemma ejecutado con Ollama, registra evidencias con SHA-256 y genera un PDF orientativo.
+# Resguarda (backend y versión web)
 
-> **Límite importante:** no sustituye servicios de emergencia, acompañamiento especializado ni asesoría legal. No determina delitos. La descarga inicial del modelo requiere internet; después de descargarlo, la aplicación funciona en la red local sin enviar el relato a un servicio externo.
+**Navegador local de evidencia digital para situaciones de violencia digital.**
+
+Resguarda transforma un incidente breve en un plan de resguardo verificable: clasifica el contexto con Gemma ejecutado localmente, muestra una checklist basada en fuentes locales, registra archivos con SHA-256 y exporta un expediente portable.
+
+> Resguarda no presenta denuncias, no determina delitos y no sustituye servicios de emergencia, acompañamiento especializado ni asesoría legal.
 
 ## Demo rápida
 
 ```bash
-# Terminal 1: instalar dependencias de la aplicación
+# Instala las dependencias de la aplicación
 uv sync
 
-# Terminal 2: una vez instalado Ollama y descargado el modelo
-ollama pull gemma4
-ollama serve
+# Una vez: instala Ollama y descarga un modelo Gemma local
+ollama pull gemma3:1b
 
-# Terminal 1: iniciar Resguarda
-uv run uvicorn app.main:app --host 127.0.0.1 --port 8000
+# Ejecuta la aplicación
+MODEL_NAME="gemma3:1b" uv run uvicorn app.main:app --host 127.0.0.1 --port 8000
 ```
 
-Abre `http://127.0.0.1:8000`.
+Abre `http://localhost:8000`. Para la demostración usa únicamente historias y archivos ficticios.
 
-Si el modelo disponible tiene otro nombre, cambia la variable antes de iniciar:
+## Recorrido del producto
 
-```bash
-MODEL_NAME=gemma3:4b uv run uvicorn app.main:app
+1. Selecciona el tipo de incidente: amenazas, contenido íntimo, sextorsión, suplantación o cuenta comprometida.
+2. Responde preguntas de triage sin datos identificables.
+3. Gemma genera un resumen local y Resguarda lo valida; la app compone el plan de seguridad y evidencia con reglas deterministas.
+4. Registra evidencias locales: archivo, fecha y SHA-256.
+5. Descarga `expediente-resguarda.zip` con PDF, manifiesto JSON, evidencias y fuentes.
+
+## Qué demuestra la IA
+
+Gemma es una parte importante, pero delimitada: convierte el contexto opcional en un resumen breve y estructurado que Resguarda valida antes de usar. Las acciones sensibles (emergencia, privacidad, checklist y fuentes) se controlan mediante lógica verificable de la aplicación, no con texto libre del modelo.
+
+Esto evita usar un modelo pequeño como autoridad legal y convierte la inferencia local en un **harness de seguridad reutilizable**.
+
+## Contenido del expediente
+
+```text
+expediente-resguarda.zip
+├── expediente-resguarda.pdf
+├── manifest.json
+├── fuentes.md
+└── evidencias/
 ```
 
-## Cómo funciona
+El manifiesto almacena metadatos, hashes, plan y fecha de exportación. El SHA-256 permite detectar cambios respecto al archivo registrado por la aplicación; por sí solo no es una cadena de custodia formal.
 
-1. La aplicación hace recuperación local sobre archivos Markdown en `documents/`.
-2. Envía únicamente los fragmentos encontrados y la pregunta al servidor local de Ollama (`127.0.0.1`).
-3. Gemma redacta una orientación con límites de seguridad y fuentes mostradas.
-4. Las evidencias permanecen en `data/evidence/`, con fecha y SHA-256.
-5. El PDF se genera localmente y puede borrarse junto con las evidencias.
+## Arquitectura
 
-## Modelo y dependencias
+```text
+Interfaz local ──▶ FastAPI ──▶ Ollama + Gemma (localhost)
+                      ├── documentos/   fuentes curadas
+                      ├── data/evidence/ archivos y manifiesto
+                      └── data/reports/  PDF y ZIP locales
+```
 
-- **Modelo:** Gemma ejecutado localmente con [Ollama](https://ollama.com/). Consultar los términos/licencia de la variante exacta descargada antes de distribuirla.
-- **Dependencias:** FastAPI, Uvicorn y python-multipart.
-- **RAG:** búsqueda léxica local sobre documentos curados. En una siguiente versión puede sustituirse por embeddings locales, sin cambiar el principio de privacidad.
+| Ruta | Función |
+| --- | --- |
+| `POST /api/plan` | Triage y plan de resguardo validado |
+| `POST /api/evidence` | Registra archivo y calcula SHA-256 |
+| `POST /api/export` | Exporta ZIP portable |
+| `POST /api/delete-all` | Borra archivos creados por Resguarda |
+| `POST /api/chat` | Orientación con Gemma sobre fuentes locales (la usa el chat de la app) |
 
-## Fuentes
+## Seguridad
 
-Los archivos en `documents/` son demostrativos. Antes de uso real, deben sustituirse por fuentes verificadas, vigentes y contextualizadas para Oaxaca, incluyendo enlaces, fecha de consulta y responsable de curaduría.
+- **CSRF:** todo `POST /api/*` exige el encabezado `X-Resguarda: 1` (lo mandan la web y la app Flutter).
+  Una página ajena no puede enviarlo sin pasar por CORS, que solo acepta orígenes locales
+  (`CORS_ORIGIN_REGEX` para agregar otros).
+- **DNS rebinding:** solo se aceptan peticiones a `ALLOWED_HOSTS` (por defecto `localhost,127.0.0.1`).
+  Para usarlo desde el celular: `ALLOWED_HOSTS=localhost,127.0.0.1,IP_DE_LA_LAPTOP` y `--host 0.0.0.0`,
+  solo en una red propia: no tiene contraseña.
 
-## Privacidad y límites
+## Fuentes y límites
 
-- No subas evidencia real durante la demostración.
-- Usa casos ficticios y capturas simuladas.
-- No uses Resguarda como almacenamiento forense definitivo: el hash demuestra integridad respecto al archivo guardado por la app, no certifica por sí solo cadena de custodia.
-- La app no ofrece “salida rápida” capaz de borrar el historial del navegador; el botón de borrado elimina solo los archivos que creó Resguarda.
+- Las fuentes locales están en [`documents/`](documents/) y se mantienen según [`DOCUMENTOS.md`](DOCUMENTOS.md).
+- Antes de cualquier uso fuera del demo, una persona responsable debe verificar vigencia, enlaces, rutas de atención y contenido jurídico.
+- La descarga inicial del modelo requiere internet. Después de descargarse, Gemma y Resguarda operan localmente.
+- Para un dispositivo con capacidad suficiente, se recomienda una variante Gemma instruccional más grande (por ejemplo `gemma4`): `MODEL_NAME=gemma4`.
+
+## Modelo y licencia
+
+- **Modelo:** Gemma ejecutado localmente con [Ollama](https://ollama.com/).
+- **Modelo de demo:** `gemma3:1b`.
+- Verificar los términos de la variante Gemma distribuida antes de redistribuir los pesos.
 
 ## Licencia
 
-Apache-2.0. Ver [LICENSE](LICENSE).
+Código: [Apache-2.0](LICENSE). La app móvil está en la raíz del repositorio (ver el [README principal](../README.md)).

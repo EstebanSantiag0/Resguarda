@@ -5,7 +5,7 @@
         <item name="android:windowBackground">@drawable/launch_background</item>
         <item name="android:forceDarkAllowed">false</item>
     </style>
-    <!-- Detrás de Flutter mientras corre: añil, para que no haya destello blanco. -->
+    <!-- Detrás de Flutter mientras corre: el mismo fondo claro de la app, sin destellos. -->
     <style name="NormalTheme" parent="@android:style/Theme.Light.NoTitleBar">
         <item name="android:windowBackground">@color/splash_bg</item>
     </style>

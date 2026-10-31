@@ -27,8 +27,8 @@ class Burbuja extends StatelessWidget {
             margin: const EdgeInsets.symmetric(vertical: 5),
             padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 11),
             decoration: BoxDecoration(
-              color: propia ? Paleta.anil : Colors.white,
-              border: propia ? null : Border.all(color: Paleta.hilo),
+              color: propia ? Paleta.ciruela : Colors.white,
+              border: propia ? null : Border.all(color: Paleta.linea),
               borderRadius: BorderRadius.only(
                 topLeft: const Radius.circular(16),
                 topRight: const Radius.circular(16),
@@ -74,7 +74,7 @@ class _EscribiendoState extends State<Escribiendo> with SingleTickerProviderStat
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
           color: Colors.white,
-          border: Border.all(color: Paleta.hilo),
+          border: Border.all(color: Paleta.linea),
           borderRadius: BorderRadius.circular(16),
         ),
         child: Semantics(
@@ -92,7 +92,7 @@ class _EscribiendoState extends State<Escribiendo> with SingleTickerProviderStat
                   width: 12,
                   height: 3,
                   decoration: BoxDecoration(
-                    color: activo ? Paleta.anil : Paleta.hilo,
+                    color: activo ? Paleta.ciruela : Paleta.linea,
                     borderRadius: BorderRadius.circular(2),
                   ),
                 );
