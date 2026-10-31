@@ -40,7 +40,10 @@ Nada se guarda en el teléfono: todo vive en memoria mientras la app está abier
    ```
    Con el backend, "Preparar denuncia" descarga el **expediente PDF** y las capturas se guardan
    también en el backend para que aparezcan en él. "Salir" borra todo también en el backend.
-   Con `--host 0.0.0.0` cualquiera en la misma red puede usar la API: úsenlo en el hotspot propio.
+   Para el celular, arranca el backend con la IP de la laptop permitida:
+   `ALLOWED_HOSTS=localhost,127.0.0.1,IP_DE_LA_LAPTOP .venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 8000`.
+   El backend rechaza peticiones sin el encabezado `X-Resguarda` (lo manda la app), pero no tiene
+   contraseña: con `--host 0.0.0.0` úsenlo solo en el hotspot propio.
 
    **A. Gemma en Google AI Studio** (necesita internet en el celular):
    ```bash

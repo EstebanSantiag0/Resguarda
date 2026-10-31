@@ -4,6 +4,7 @@ import hashlib
 import json
 import os
 import re
+import secrets
 import textwrap
 import urllib.error
 import urllib.request
@@ -11,9 +12,10 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Annotated
 
-from fastapi import FastAPI, File, HTTPException, UploadFile
+from fastapi import FastAPI, File, HTTPException, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, HTMLResponse
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
+from starlette.middleware.trustedhost import TrustedHostMiddleware
 
 ROOT = Path(__file__).resolve().parents[1]
 DOCUMENTS = ROOT / "documents"
@@ -26,11 +28,25 @@ app = FastAPI(title="Resguarda", docs_url=None, redoc_url=None)
 
 # La app Flutter web corre en otro puerto (flutter run -d chrome); solo se aceptan orígenes locales.
 # Otros orígenes se pueden agregar con CORS_ORIGIN_REGEX (por ejemplo, la IP de la laptop).
+# Solo se aceptan peticiones dirigidas a estos nombres (bloquea DNS rebinding). Para usarla desde
+# el celular agrega la IP de la laptop: ALLOWED_HOSTS=localhost,127.0.0.1,192.168.x.x
+app.add_middleware(TrustedHostMiddleware, allowed_hosts=os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1").split(","))
+
+
+@app.middleware("http")
+async def require_app_header(request: Request, call_next):
+    # Un formulario o fetch "simple" de otra página no puede mandar este encabezado sin pasar por
+    # CORS, así que ninguna página ajena puede borrar ni subir evidencias (CSRF).
+    if request.method == "POST" and request.url.path.startswith("/api/") and request.headers.get("x-resguarda") != "1":
+        return JSONResponse({"detail": "Solicitud rechazada."}, status_code=403)
+    return await call_next(request)
+
+
 app.add_middleware(
     CORSMiddleware,
     allow_origin_regex=os.getenv("CORS_ORIGIN_REGEX", r"http://(localhost|127\.0\.0\.1)(:\d+)?"),
     allow_methods=["GET", "POST"],
-    allow_headers=["Content-Type"],
+    allow_headers=["Content-Type", "X-Resguarda"],
 )
 
 
@@ -162,7 +178,7 @@ async def add_evidence(file: Annotated[UploadFile, File()]) -> dict[str, str]:
     if len(data) > 12 * 1024 * 1024:
         raise HTTPException(413, "El archivo excede 12 MB.")
     safe_name = re.sub(r"[^A-Za-z0-9._-]", "_", Path(file.filename).name)
-    saved = EVIDENCE_DIR / f"{datetime.now().strftime('%Y%m%d-%H%M%S')}_{safe_name}"
+    saved = EVIDENCE_DIR / f"{datetime.now().strftime('%Y%m%d-%H%M%S')}_{secrets.token_hex(3)}_{safe_name}"
     saved.write_bytes(data)
     item = {"filename": saved.name, "sha256": hashlib.sha256(data).hexdigest(), "created_at": datetime.now(timezone.utc).isoformat()}
     manifest = evidence_manifest()
