@@ -4,6 +4,7 @@ import 'package:flutter/services.dart' show rootBundle;
 import 'package:http/http.dart' as http;
 
 import '../sesion.dart';
+import 'api.dart';
 
 /// Configuración al compilar:
 ///   --dart-define=GEMMA_API_KEY=...      (Google AI Studio)
@@ -41,6 +42,10 @@ class Gemma {
   }
 
   static Future<String> responder(List<Mensaje> historial, Situacion? s, {String? instruccionFinal}) async {
+    if (usaApi) {
+      // El backend no guarda conversación: se le manda todo el relato de la persona.
+      return ResguardaApi.chat(historial.where((m) => m.deUsuaria).map((m) => m.texto).join('\n'));
+    }
     final sistema = await _sistema(s);
     final turnos = [
       ...historial,

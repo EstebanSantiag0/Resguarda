@@ -2,12 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import 'services/api.dart';
 import 'sesion.dart';
 import 'theme.dart';
 
 /// Salida rápida: borra todo lo de la sesión y cierra la app.
 Future<void> salirRapido() async {
   Sesion.instancia.borrarTodo();
+  if (usaApi) {
+    // Borra también las evidencias y el PDF guardados en el backend; si no responde, se sale igual.
+    await ResguardaApi.borrarTodo().catchError((_) {});
+  }
   await SystemNavigator.pop();
 }
 

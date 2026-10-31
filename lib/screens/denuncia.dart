@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart';
 
+import '../services/api.dart';
 import '../services/gemma.dart';
 import '../sesion.dart';
 import '../theme.dart';
@@ -40,6 +41,26 @@ class _DenunciaState extends State<Denuncia> {
     }
   }
 
+  Future<void> _descargarPdf() async {
+    setState(() {
+      _cargando = true;
+      _error = null;
+    });
+    try {
+      final relato = _sesion.mensajes.where((m) => m.deUsuaria).map((m) => m.texto).join('\n');
+      final pdf = await ResguardaApi.expediente(relato);
+      await SharePlus.instance.share(ShareParams(
+        files: [XFile.fromData(pdf, mimeType: 'application/pdf', name: 'expediente-resguarda.pdf')],
+        fileNameOverrides: ['expediente-resguarda.pdf'],
+        subject: 'Expediente Resguarda',
+      ));
+    } catch (e) {
+      setState(() => _error = 'No pude generar el PDF. Revisa que el servidor de Resguarda esté encendido.\n$e');
+    } finally {
+      if (mounted) setState(() => _cargando = false);
+    }
+  }
+
   String _documento() {
     final evidencias = _sesion.evidencias.isEmpty
         ? 'Sin evidencias registradas.'
@@ -54,22 +75,23 @@ class _DenunciaState extends State<Denuncia> {
   Widget build(BuildContext context) {
     final texto = Theme.of(context).textTheme;
     final sinRelato = !_sesion.mensajes.any((m) => m.deUsuaria);
+    final explicacion = usaApi
+        ? 'Armo un PDF con tu relato y la lista de tus evidencias con su huella digital. '
+            'Revísalo antes de llevarlo a la Fiscalía.'
+        : 'Armo un borrador con lo que me contaste y la lista de tus evidencias. '
+            'Revísalo y llévalo a la Fiscalía.';
     return Scaffold(
       appBar: AppBar(title: const Text('Preparar denuncia')),
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
-          Text(
-            'Armo un borrador con lo que me contaste y la lista de tus evidencias. '
-            'Revísalo y llévalo a la Fiscalía.',
-            style: texto.bodyLarge,
-          ),
+          Text(explicacion, style: texto.bodyLarge),
           const SizedBox(height: 18),
           if (sinRelato)
             Text('Primero cuéntame qué pasó en el chat.', style: texto.titleMedium?.copyWith(color: Paleta.grana))
           else
             Pressable(
-              onTap: _cargando ? null : _generar,
+              onTap: _cargando ? null : (usaApi ? _descargarPdf : _generar),
               color: Paleta.anil,
               colorHover: const Color(0xFF1A2454),
               borde: Paleta.anil,
@@ -82,7 +104,7 @@ class _DenunciaState extends State<Denuncia> {
                   else
                     const Icon(Icons.edit_note, color: Colors.white),
                   const SizedBox(width: 10),
-                  Text(_borrador == null ? 'Generar borrador' : 'Generar de nuevo',
+                  Text(usaApi ? 'Descargar expediente PDF' : (_borrador == null ? 'Generar borrador' : 'Generar de nuevo'),
                       style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
                 ],
               ),

@@ -27,7 +27,20 @@ Nada se guarda en el teléfono: todo vive en memoria mientras la app está abier
    ```bash
    flutter pub get --offline
    ```
-4. Ejecuta con **una** de estas dos opciones de modelo:
+4. Ejecuta con **una** de estas opciones de modelo:
+
+   **0. Backend de Resguarda (recomendado: Gemma 4 local + PDF)**, en la carpeta `backend/`:
+   ```bash
+   ollama pull gemma4 && ollama serve                      # en la laptop que tenga el modelo
+   cd backend && python -m venv .venv && .venv/bin/pip install fastapi uvicorn python-multipart
+   .venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 8000
+   # En otra terminal, desde la raíz del proyecto:
+   flutter run -d chrome  --dart-define=RESGUARDA_API=http://localhost:8000          # web
+   flutter run -d <celular> --dart-define=RESGUARDA_API=http://IP_DE_LA_LAPTOP:8000  # Android
+   ```
+   Con el backend, "Preparar denuncia" descarga el **expediente PDF** y las capturas se guardan
+   también en el backend para que aparezcan en él. "Salir" borra todo también en el backend.
+   Con `--host 0.0.0.0` cualquiera en la misma red puede usar la API: úsenlo en el hotspot propio.
 
    **A. Gemma en Google AI Studio** (necesita internet en el celular):
    ```bash

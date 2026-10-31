@@ -1,0 +1,7 @@
+.venv/
+__pycache__/
+*.py[cod]
+data/evidence/*
+!data/evidence/.gitkeep
+data/reports/*
+!data/reports/.gitkeep

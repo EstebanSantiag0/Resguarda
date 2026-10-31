@@ -3,6 +3,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../services/api.dart';
 import '../sesion.dart';
 import '../theme.dart';
 import '../widgets/pressable.dart';
@@ -23,14 +24,27 @@ class _EvidenciasState extends State<Evidencias> {
     try {
       final archivos = await FilePicker.pickFiles(type: FileType.image);
       var repetidas = 0;
+      var sinRespaldo = 0;
       for (final a in archivos) {
-        final huella = sha256.convert(await a.readAsBytes()).toString();
-        if (!_sesion.agregarEvidencia(Evidencia(a.name, DateTime.now(), huella))) repetidas++;
+        final bytes = await a.readAsBytes();
+        final huella = sha256.convert(bytes).toString();
+        if (!_sesion.agregarEvidencia(Evidencia(a.name, DateTime.now(), huella))) {
+          repetidas++;
+        } else if (usaApi) {
+          // Se guarda también en el backend para que aparezca en el expediente PDF.
+          try {
+            await ResguardaApi.subirEvidencia(a.name, bytes);
+          } catch (_) {
+            sinRespaldo++;
+          }
+        }
       }
-      if (repetidas > 0 && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('$repetidas captura(s) ya estaban registradas.')),
-        );
+      final avisos = [
+        if (repetidas > 0) '$repetidas captura(s) ya estaban registradas.',
+        if (sinRespaldo > 0) '$sinRespaldo captura(s) no llegaron al servidor; no saldrán en el PDF.',
+      ];
+      if (avisos.isNotEmpty && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(avisos.join(' '))));
       }
     } finally {
       if (mounted) setState(() => _cargando = false);
